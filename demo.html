@@ -891,6 +891,22 @@
     // Seven real threads from forum.cursor.com/c/support/21
     const TICKETS = [
       {
+        id: 2,
+        title: 'Cursor not working, switched to Auto',
+        category: 'Capacity / load',
+        url: 'https://forum.cursor.com/t/cursor-is-not-working-switched-to-auto-it-always-stops-working/162067',
+        forumPreview: 'Cursor is not working again — had to switch to Auto. Composer 2.5 just stops mid-request. Is anyone else seeing this today?',
+        scores: { I: 3, F: 3, E: 3 },
+        total: 9,
+        action: 'Status banner',
+        actionContent: `Discourse banner template:
+
+We're seeing high demand on Composer 2.5 — try Auto or another model. No action needed on your end.
+
+(Pin for 24h. Remove when capacity normalizes.)`,
+        resolved: false,
+      },
+      {
         id: 1,
         title: 'Execution backend unavailable',
         category: 'Agent / execution',
@@ -908,22 +924,6 @@ Hi [name] — sorry for the rough experience with "Execution backend unavailable
 3. If it persists, confirm you're on Cursor ≥ 0.45 and that no VPN is intercepting localhost traffic on port 8080.
 
 These three steps resolve ~90% of reports. If you're still blocked after trying all three, reply with your WSL distro version and we'll escalate.`,
-        resolved: false,
-      },
-      {
-        id: 2,
-        title: 'Cursor not working, switched to Auto',
-        category: 'Capacity / load',
-        url: 'https://forum.cursor.com/t/cursor-is-not-working-switched-to-auto-it-always-stops-working/162067',
-        forumPreview: 'Cursor is not working again — had to switch to Auto. Composer 2.5 just stops mid-request. Is anyone else seeing this today?',
-        scores: { I: 3, F: 3, E: 3 },
-        total: 9,
-        action: 'Status banner',
-        actionContent: `Discourse banner template:
-
-We're seeing high demand on Composer 2.5 — try Auto or another model. No action needed on your end.
-
-(Pin for 24h. Remove when capacity normalizes.)`,
         resolved: false,
       },
       {
