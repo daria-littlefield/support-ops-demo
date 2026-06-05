@@ -1,12 +1,12 @@
 {
-  "name": "cursor-support-ops-demo",
+  "name": "support-ops-demo",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:demo": "rm -rf dist-demo && mkdir -p dist-demo/assets && cp demo-v2.html dist-demo/index.html && cp assets/background.png dist-demo/assets/",
+    "build:demo": "rm -rf dist-demo && mkdir -p dist-demo/assets && cp demo.html dist-demo/index.html && cp assets/background.png dist-demo/assets/",
     "preview": "vite preview",
     "preview:demo": "npm run build:demo && npx --yes serve dist-demo -p 4173"
   },
