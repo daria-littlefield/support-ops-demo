@@ -216,27 +216,10 @@
     /* ── Three-column main ── */
     .main-grid {
       display: grid;
-      grid-template-columns: 1.25fr 1fr;
+      grid-template-columns: 1.35fr 0.75fr 1.1fr;
       gap: 18px;
       margin-bottom: 18px;
       min-height: 440px;
-      align-items: stretch;
-    }
-
-    .main-sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      min-height: 0;
-    }
-
-    .main-sidebar .panel-ife {
-      flex: 0 0 auto;
-    }
-
-    .main-sidebar .action-panel {
-      flex: 1;
-      min-height: 0;
     }
 
     .panel {
@@ -615,8 +598,8 @@
       border-radius: var(--apple-radius-sm);
       padding: 14px;
       white-space: pre-wrap;
+      max-height: 220px;
       overflow-y: auto;
-      min-height: 80px;
     }
 
     .copy-btn {
@@ -702,7 +685,6 @@
       .app { padding: 20px 16px 32px; }
       .metrics-strip { grid-template-columns: 1fr 1fr; }
       .main-grid { grid-template-columns: 1fr; }
-      .main-sidebar { min-height: auto; }
       .ife-guide-grid { grid-template-columns: 1fr; }
     }
 
@@ -783,67 +765,65 @@
         <ul class="ticket-list" id="ticket-list"></ul>
       </div>
 
-      <div class="main-sidebar">
-        <!-- IFE scorer (top) -->
-        <div class="panel panel-ife">
-          <div class="panel-header">IFE scorer</div>
-          <div class="ife-panel-body">
-            <div class="ife-placeholder" id="ife-placeholder">Select a ticket to see I / F / E breakdown.</div>
-            <div class="ife-breakdown" id="ife-breakdown">
-              <div class="ife-total-row">
-                <span class="ife-total-label">Total score</span>
-                <span class="ife-total-value" id="ife-total">—</span>
+      <!-- IFE scorer -->
+      <div class="panel panel-ife">
+        <div class="panel-header">IFE scorer</div>
+        <div class="ife-panel-body">
+          <div class="ife-placeholder" id="ife-placeholder">Select a ticket to see I / F / E breakdown.</div>
+          <div class="ife-breakdown" id="ife-breakdown">
+            <div class="ife-total-row">
+              <span class="ife-total-label">Total score</span>
+              <span class="ife-total-value" id="ife-total">—</span>
+            </div>
+            <div class="ife-dimension">
+              <div class="ife-dim-header">
+                <span class="ife-dim-name">Impact (I)</span>
+                <span class="ife-dim-score" id="ife-i">—</span>
               </div>
-              <div class="ife-dimension">
-                <div class="ife-dim-header">
-                  <span class="ife-dim-name">Impact (I)</span>
-                  <span class="ife-dim-score" id="ife-i">—</span>
-                </div>
-                <div class="ife-dim-desc" id="ife-i-desc"></div>
+              <div class="ife-dim-desc" id="ife-i-desc"></div>
+            </div>
+            <div class="ife-dimension">
+              <div class="ife-dim-header">
+                <span class="ife-dim-name">Frequency (F)</span>
+                <span class="ife-dim-score" id="ife-f">—</span>
               </div>
-              <div class="ife-dimension">
-                <div class="ife-dim-header">
-                  <span class="ife-dim-name">Frequency (F)</span>
-                  <span class="ife-dim-score" id="ife-f">—</span>
-                </div>
-                <div class="ife-dim-desc" id="ife-f-desc"></div>
+              <div class="ife-dim-desc" id="ife-f-desc"></div>
+            </div>
+            <div class="ife-dimension">
+              <div class="ife-dim-header">
+                <span class="ife-dim-name">Effort (E)</span>
+                <span class="ife-dim-score" id="ife-e">—</span>
               </div>
-              <div class="ife-dimension">
-                <div class="ife-dim-header">
-                  <span class="ife-dim-name">Effort (E)</span>
-                  <span class="ife-dim-score" id="ife-e">—</span>
-                </div>
-                <div class="ife-dim-desc" id="ife-e-desc"></div>
-              </div>
-              <div class="severity-bar">
-                <div class="severity-bar-fill" id="ife-bar"></div>
-              </div>
+              <div class="ife-dim-desc" id="ife-e-desc"></div>
+            </div>
+            <div class="severity-bar">
+              <div class="severity-bar-fill" id="ife-bar"></div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Action panel (bottom) -->
-        <div class="panel action-panel severity-grey" id="action-panel">
-          <div class="panel-header">Action panel</div>
-          <div class="action-body">
-            <div class="action-placeholder" id="action-placeholder">Select a ticket to see suggested action.</div>
-            <div class="action-content" id="action-content">
-              <div class="action-header">
-                <div class="action-title" id="action-title"></div>
-                <a class="action-forum-link" id="action-forum-link" href="#" target="_blank" rel="noopener noreferrer">View on forum ↗</a>
-                <div class="action-score-line">Total score: <strong id="action-score"></strong></div>
-              </div>
-              <div class="forum-preview">
-                <div class="forum-preview-label">Forum excerpt</div>
-                <div class="forum-preview-text" id="action-forum-preview"></div>
-              </div>
-              <div class="action-label-row">
-                <span class="action-label-text">Suggested action</span>
-                <span class="action-badge" id="action-badge"></span>
-              </div>
-              <div class="action-text" id="action-text"></div>
-              <button class="copy-btn" id="copy-btn" type="button">Mark as resolved</button>
+      <!-- Action panel -->
+      <div class="panel action-panel severity-grey" id="action-panel">
+        <div class="panel-header">Action panel</div>
+        <div class="action-body">
+          <div class="action-placeholder" id="action-placeholder">Select a ticket to see suggested action.</div>
+          <div class="action-content" id="action-content">
+            <div class="action-header">
+              <div class="action-title" id="action-title"></div>
+              <a class="action-forum-link" id="action-forum-link" href="#" target="_blank" rel="noopener noreferrer">View on forum ↗</a>
+              <div class="action-score-line">Total score: <strong id="action-score"></strong></div>
             </div>
+            <div class="forum-preview">
+              <div class="forum-preview-label">Forum excerpt</div>
+              <div class="forum-preview-text" id="action-forum-preview"></div>
+            </div>
+            <div class="action-label-row">
+              <span class="action-label-text">Suggested action</span>
+              <span class="action-badge" id="action-badge"></span>
+            </div>
+            <div class="action-text" id="action-text"></div>
+            <button class="copy-btn" id="copy-btn" type="button">Mark as resolved</button>
           </div>
         </div>
       </div>
