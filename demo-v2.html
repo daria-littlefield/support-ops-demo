@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Ops Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --apple-bg: #f5f5f7;
+      --apple-card: #ffffff;
+      --apple-text: #1d1d1f;
+      --apple-text-secondary: #86868b;
+      --apple-text-tertiary: #aeaeb2;
+      --apple-blue: #007aff;
+      --apple-green: #34c759;
+      --apple-red: #ff3b30;
+      --apple-orange: #ff9500;
+      --apple-separator: rgba(0, 0, 0, 0.06);
+      --apple-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.04);
+      --apple-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
+      --apple-radius: 16px;
+      --apple-radius-sm: 10px;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
+      font-size: 15px;
+      line-height: 1.47;
+      letter-spacing: -0.01em;
+      color: var(--apple-text);
+      background: #e8eef4 url('assets/background.png') center center / cover no-repeat fixed;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.38);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 28px 48px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--apple-text);
+    }
+
+    /* ── Metrics strip ── */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 14px;
+      margin-bottom: 20px;
+      align-items: stretch;
+    }
+
+    .stat-card {
+      background: var(--apple-card);
+      border: none;
+      border-radius: var(--apple-radius);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 88px;
+      box-shadow: var(--apple-shadow-sm);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--apple-text-secondary);
+      margin-bottom: 6px;
+      text-transform: none;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--apple-text);
+      line-height: 1.1;
+    }
+
+    .squirrel-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 88px;
+      min-width: 128px;
+      width: 128px;
+      padding: 8px 10px 12px;
+      background: var(--apple-card);
+      border-radius: var(--apple-radius);
+      box-shadow: var(--apple-shadow-sm);
+    }
+
+    .speech-bubble {
+      position: relative;
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1.5px solid #d1d1d6;
+      border-radius: 14px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--apple-text);
+      text-align: center;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+      min-height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .speech-bubble::after,
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+    }
+
+    .speech-bubble::before {
+      bottom: -8px;
+      border-top: 8px solid #d1d1d6;
+    }
+
+    .speech-bubble::after {
+      bottom: -6px;
+      border-top: 7px solid #fff;
+    }
+
+    .squirrel-stage {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .squirrel-stage svg {
+      width: 60px;
+      height: 60px;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(60, 40, 10, 0.18));
+    }
+
+    @keyframes squirrel-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .squirrel-card.state-happy .squirrel-stage svg {
+      animation: squirrel-bounce 0.75s ease-in-out infinite;
+    }
+
+    .queue-health {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .queue-health-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--apple-text-secondary);
+      margin-bottom: 5px;
+      letter-spacing: -0.01em;
+    }
+
+    .health-bar-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 980px;
+      overflow: hidden;
+    }
+
+    .health-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 980px;
+      background: var(--apple-red);
+      transition: width 0.55s cubic-bezier(0.25, 0.1, 0.25, 1), background 0.45s ease;
+    }
+
+    /* ── Three-column main ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+      min-height: 440px;
+      align-items: stretch;
+    }
+
+    .main-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .main-sidebar .panel-ife {
+      flex: 0 0 auto;
+    }
+
+    .main-sidebar .action-panel {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .panel {
+      border: none;
+      border-radius: var(--apple-radius);
+      background: var(--apple-card);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--apple-shadow-sm);
+    }
+
+    .panel-header {
+      padding: 16px 18px 12px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.022em;
+      color: var(--apple-text);
+      background: transparent;
+      border-bottom: none;
+    }
+
+    /* ── Ticket feed ── */
+    .ticket-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 10px 10px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .ticket-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      margin-bottom: 6px;
+      border-radius: var(--apple-radius-sm);
+      cursor: pointer;
+      transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+      border-left: none;
+      background: var(--apple-bg);
+    }
+
+    .ticket-row:last-child { margin-bottom: 0; }
+
+    .ticket-row:hover {
+      background: #ececee;
+    }
+
+    .ticket-row.selected {
+      background: rgba(0, 122, 255, 0.1);
+      box-shadow: inset 0 0 0 1.5px rgba(0, 122, 255, 0.35);
+    }
+
+    .ticket-row.severity-grey { background: var(--apple-bg); }
+    .ticket-row.severity-grey:hover { background: #ececee; }
+    .ticket-row.severity-grey.selected { background: rgba(0, 122, 255, 0.1); }
+
+    .ticket-row.severity-amber {
+      background: rgba(255, 149, 0, 0.06);
+    }
+
+    .ticket-row.severity-amber:hover {
+      background: rgba(255, 149, 0, 0.09);
+    }
+
+    .ticket-row.severity-red {
+      background: rgba(255, 59, 48, 0.06);
+    }
+
+    .ticket-row.severity-red:hover {
+      background: rgba(255, 59, 48, 0.09);
+    }
+
+    .ticket-row.resolved {
+      background: rgba(142, 142, 147, 0.12) !important;
+      box-shadow: none !important;
+      opacity: 1;
+    }
+
+    .ticket-row.resolved .ticket-title {
+      text-decoration: line-through;
+      text-decoration-color: rgba(0, 0, 0, 0.2);
+      color: var(--apple-text-secondary);
+    }
+
+    .ticket-main { min-width: 0; }
+
+    .ticket-title {
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: -0.015em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 5px;
+      color: var(--apple-text);
+    }
+
+    .ticket-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .category-tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 980px;
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--apple-text-secondary);
+    }
+
+    .forum-link {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--apple-blue);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .forum-link:hover {
+      opacity: 0.75;
+    }
+
+    .action-forum-link {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--apple-blue);
+      text-decoration: none;
+      margin-top: 2px;
+      margin-bottom: 6px;
+    }
+
+    .action-forum-link:hover {
+      opacity: 0.75;
+    }
+
+    .ife-mini {
+      display: flex;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--apple-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ife-mini span {
+      color: var(--apple-text-tertiary);
+      font-weight: 400;
+    }
+
+    .score-badge {
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 980px;
+      background: rgba(142, 142, 147, 0.16);
+      color: var(--apple-text);
+      letter-spacing: -0.02em;
+    }
+
+    .severity-red .score-badge {
+      background: rgba(255, 59, 48, 0.1);
+      color: #c93434;
+    }
+
+    .severity-amber .score-badge {
+      background: rgba(255, 149, 0, 0.1);
+      color: #a16207;
+    }
+
+    .check-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--apple-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    /* ── IFE scorer ── */
+    .ife-panel-body {
+      padding: 0 18px 18px;
+      flex: 1;
+    }
+
+    .ife-placeholder {
+      color: var(--apple-text-tertiary);
+      font-size: 14px;
+      text-align: center;
+      padding: 48px 16px;
+    }
+
+    .ife-breakdown { display: none; }
+    .ife-breakdown.visible { display: block; }
+
+    .ife-total-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--apple-separator);
+    }
+
+    .ife-total-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--apple-text-secondary);
+    }
+
+    .ife-total-value {
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+
+    .ife-dimension {
+      margin-bottom: 16px;
+    }
+
+    .ife-dim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .ife-dim-name {
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: -0.015em;
+    }
+
+    .ife-dim-score {
+      font-size: 15px;
+      font-weight: 600;
+      width: 32px;
+      height: 32px;
+      border-radius: 980px;
+      background: var(--apple-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ife-dim-desc {
+      font-size: 12px;
+      color: var(--apple-text-secondary);
+      line-height: 1.45;
+    }
+
+    .severity-bar {
+      height: 6px;
+      border-radius: 980px;
+      margin-top: 18px;
+      background: var(--apple-bg);
+      overflow: hidden;
+    }
+
+    .severity-bar-fill {
+      height: 100%;
+      border-radius: 980px;
+      transition: width 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    /* ── Action panel ── */
+    .action-body {
+      padding: 0 18px 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .action-placeholder {
+      color: var(--apple-text-tertiary);
+      font-size: 14px;
+      text-align: center;
+      padding: 64px 16px;
+      flex: 1;
+    }
+
+    .action-content { display: none; flex: 1; flex-direction: column; }
+    .action-content.visible { display: flex; }
+
+    .action-header {
+      margin-bottom: 16px;
+    }
+
+    .action-title {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.022em;
+      margin-bottom: 2px;
+      line-height: 1.35;
+    }
+
+    .action-score-line {
+      font-size: 13px;
+      color: var(--apple-text-secondary);
+      margin-top: 6px;
+    }
+
+    .forum-preview {
+      margin: 14px 0 16px;
+      padding: 10px 12px;
+      background: var(--apple-bg);
+      border-radius: var(--apple-radius-sm);
+      border-left: 2px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .forum-preview-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--apple-text-tertiary);
+      margin-bottom: 6px;
+    }
+
+    .forum-preview-text {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--apple-text-secondary);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .action-label-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .action-label-text {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--apple-text-secondary);
+      text-transform: none;
+    }
+
+    .action-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 980px;
+      background: rgba(0, 122, 255, 0.12);
+      color: var(--apple-blue);
+    }
+
+    .action-text {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--apple-text);
+      background: var(--apple-bg);
+      border: none;
+      border-radius: var(--apple-radius-sm);
+      padding: 14px;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      min-height: 80px;
+    }
+
+    .copy-btn {
+      margin-top: 16px;
+      padding: 11px 20px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      border: none;
+      border-radius: 980px;
+      background: var(--apple-blue);
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+    }
+
+    .copy-btn:hover { opacity: 0.88; }
+    .copy-btn:active { transform: scale(0.98); opacity: 1; }
+    .copy-btn.copied { background: var(--apple-green); }
+
+    .action-panel.severity-red,
+    .action-panel.severity-amber,
+    .action-panel.severity-grey {
+      box-shadow: var(--apple-shadow-sm);
+    }
+
+    /* ── Collapsible IFE reference ── */
+    .ife-reference {
+      border: none;
+      border-radius: var(--apple-radius);
+      overflow: hidden;
+      background: var(--apple-card);
+      box-shadow: var(--apple-shadow-sm);
+    }
+
+    .ife-reference-toggle {
+      width: 100%;
+      padding: 16px 18px;
+      background: transparent;
+      border: none;
+      text-align: left;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--apple-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s ease;
+    }
+
+    .ife-reference-toggle:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .ife-reference-toggle .chevron {
+      transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+      font-size: 11px;
+      color: var(--apple-text-tertiary);
+    }
+
+    .ife-reference.open .chevron { transform: rotate(180deg); }
+
+    .ife-reference-body {
+      display: none;
+      padding: 0 18px 22px;
+      border-top: 1px solid var(--apple-separator);
+    }
+
+    .ife-reference.open .ife-reference-body { display: block; }
+
+    .ife-guide-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      padding-top: 18px;
+    }
+
+    @media (max-width: 800px) {
+      .app { padding: 20px 16px 32px; }
+      .metrics-strip { grid-template-columns: 1fr 1fr; }
+      .main-grid { grid-template-columns: 1fr; }
+      .main-sidebar { min-height: auto; }
+      .ife-guide-grid { grid-template-columns: 1fr; }
+    }
+
+    .ife-guide-col h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--apple-text);
+    }
+
+    .ife-guide-col ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .ife-guide-col li {
+      font-size: 13px;
+      color: var(--apple-text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+
+    .ife-guide-col li strong {
+      display: inline-block;
+      min-width: 18px;
+      font-weight: 600;
+      color: var(--apple-text);
+    }
+
+    .ife-footnote {
+      margin: 18px 0 0;
+      font-size: 13px;
+      color: var(--apple-text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="page-header">
+      <h1>Support Ops Dashboard</h1>
+    </header>
+
+    <!-- Section 1: Metrics strip -->
+    <section class="metrics-strip">
+      <div class="stat-card">
+        <div class="stat-label">Tickets above threshold this week</div>
+        <div class="stat-value">4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Engineer time saved (est.)</div>
+        <div class="stat-value">2.3 hrs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Deflection rate (config/how-to)</div>
+        <div class="stat-value">61%</div>
+      </div>
+      <div class="squirrel-card state-dead" id="squirrel-card">
+        <div class="speech-bubble" id="squirrel-label">...help.</div>
+        <div class="squirrel-stage" id="squirrel-stage">
+          <div id="squirrel-svg"></div>
+        </div>
+        <div class="queue-health">
+          <div class="queue-health-label">Queue health</div>
+          <div class="health-bar-track">
+            <div class="health-bar-fill" id="health-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2–4: Main layout -->
+    <section class="main-grid">
+      <!-- Ticket feed -->
+      <div class="panel">
+        <div class="panel-header">Ticket feed</div>
+        <ul class="ticket-list" id="ticket-list"></ul>
+      </div>
+
+      <div class="main-sidebar">
+        <!-- IFE scorer (top) -->
+        <div class="panel panel-ife">
+          <div class="panel-header">IFE scorer</div>
+          <div class="ife-panel-body">
+            <div class="ife-placeholder" id="ife-placeholder">Select a ticket to see I / F / E breakdown.</div>
+            <div class="ife-breakdown" id="ife-breakdown">
+              <div class="ife-total-row">
+                <span class="ife-total-label">Total score</span>
+                <span class="ife-total-value" id="ife-total">—</span>
+              </div>
+              <div class="ife-dimension">
+                <div class="ife-dim-header">
+                  <span class="ife-dim-name">Impact (I)</span>
+                  <span class="ife-dim-score" id="ife-i">—</span>
+                </div>
+                <div class="ife-dim-desc" id="ife-i-desc"></div>
+              </div>
+              <div class="ife-dimension">
+                <div class="ife-dim-header">
+                  <span class="ife-dim-name">Frequency (F)</span>
+                  <span class="ife-dim-score" id="ife-f">—</span>
+                </div>
+                <div class="ife-dim-desc" id="ife-f-desc"></div>
+              </div>
+              <div class="ife-dimension">
+                <div class="ife-dim-header">
+                  <span class="ife-dim-name">Effort (E)</span>
+                  <span class="ife-dim-score" id="ife-e">—</span>
+                </div>
+                <div class="ife-dim-desc" id="ife-e-desc"></div>
+              </div>
+              <div class="severity-bar">
+                <div class="severity-bar-fill" id="ife-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action panel (bottom) -->
+        <div class="panel action-panel severity-grey" id="action-panel">
+          <div class="panel-header">Action panel</div>
+          <div class="action-body">
+            <div class="action-placeholder" id="action-placeholder">Select a ticket to see suggested action.</div>
+            <div class="action-content" id="action-content">
+              <div class="action-header">
+                <div class="action-title" id="action-title"></div>
+                <a class="action-forum-link" id="action-forum-link" href="#" target="_blank" rel="noopener noreferrer">View on forum ↗</a>
+                <div class="action-score-line">Total score: <strong id="action-score"></strong></div>
+              </div>
+              <div class="forum-preview">
+                <div class="forum-preview-label">Forum excerpt</div>
+                <div class="forum-preview-text" id="action-forum-preview"></div>
+              </div>
+              <div class="action-label-row">
+                <span class="action-label-text">Suggested action</span>
+                <span class="action-badge" id="action-badge"></span>
+              </div>
+              <div class="action-text" id="action-text"></div>
+              <button class="copy-btn" id="copy-btn" type="button">Mark as resolved</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Collapsible IFE reference -->
+    <section class="ife-reference" id="ife-reference">
+      <button class="ife-reference-toggle" id="ife-ref-toggle" type="button" aria-expanded="false">
+        How scores work
+        <span class="chevron">▼</span>
+      </button>
+      <div class="ife-reference-body">
+        <div class="ife-guide-grid">
+          <div class="ife-guide-col">
+            <h4>Impact (I)</h4>
+            <ul>
+              <li><strong>1</strong> — Cosmetic or edge case; workaround exists</li>
+              <li><strong>2</strong> — Blocks a workflow for some users</li>
+              <li><strong>3</strong> — Core feature broken; no viable workaround</li>
+            </ul>
+          </div>
+          <div class="ife-guide-col">
+            <h4>Frequency (F)</h4>
+            <ul>
+              <li><strong>1</strong> — One-off or rare report</li>
+              <li><strong>2</strong> — Recurring theme; a few threads/week</li>
+              <li><strong>3</strong> — Spike or sustained volume; trending</li>
+            </ul>
+          </div>
+          <div class="ife-guide-col">
+            <h4>Effort (E)</h4>
+            <ul>
+              <li><strong>1</strong> — Needs eng investigation or product change</li>
+              <li><strong>2</strong> — Support can draft response; eng confirms</li>
+              <li><strong>3</strong> — Known answer; macro / FAQ / banner ready</li>
+            </ul>
+          </div>
+        </div>
+        <p class="ife-footnote">
+          Total = I + F + E (max 9). Grey &lt; 6 · Amber 6–7 · Red 8–9.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ── IFE dimension labels ──
+    const I_LABELS = {
+      1: 'Cosmetic or edge case; workaround exists',
+      2: 'Blocks a workflow for some users',
+      3: 'Core feature broken; no viable workaround',
+    };
+    const F_LABELS = {
+      1: 'One-off or rare report',
+      2: 'Recurring theme; a few threads/week',
+      3: 'Spike or sustained volume; trending',
+    };
+    const E_LABELS = {
+      1: 'Needs eng investigation or product change',
+      2: 'Support can draft response; eng confirms',
+      3: 'Known answer; macro / FAQ / banner ready',
+    };
+
+    // ── Ticket queue (hardcoded — no fetch, no API) ──
+    // Seven real threads from forum.cursor.com/c/support/21
+    const TICKETS = [
+      {
+        id: 1,
+        title: 'Execution backend unavailable',
+        category: 'Agent / execution',
+        url: 'https://forum.cursor.com/t/execution-backend-unavailable/162239',
+        forumPreview: 'Every time I try to run the agent on WSL I get "Execution backend unavailable." Restarted Cursor twice, same error. Blocking my whole workflow.',
+        scores: { I: 3, F: 3, E: 2 },
+        total: 8,
+        action: 'Create macro',
+        actionContent: `macro_WSL_001 — ready-to-paste forum reply:
+
+Hi [name] — sorry for the rough experience with "Execution backend unavailable." This is a known WSL networking issue. Kevin's verified workaround:
+
+1. Open a terminal in WSL and run: \`wsl --shutdown\`, then restart your WSL distro from Windows Terminal.
+2. In Cursor, open Settings → search "remote" → disable then re-enable "Use WSL" integration, then reload the window (Cmd/Ctrl+Shift+P → "Developer: Reload Window").
+3. If it persists, confirm you're on Cursor ≥ 0.45 and that no VPN is intercepting localhost traffic on port 8080.
+
+These three steps resolve ~90% of reports. If you're still blocked after trying all three, reply with your WSL distro version and we'll escalate.`,
+        resolved: false,
+      },
+      {
+        id: 2,
+        title: 'Cursor not working, switched to Auto',
+        category: 'Capacity / load',
+        url: 'https://forum.cursor.com/t/cursor-is-not-working-switched-to-auto-it-always-stops-working/162067',
+        forumPreview: 'Cursor is not working again — had to switch to Auto. Composer 2.5 just stops mid-request. Is anyone else seeing this today?',
+        scores: { I: 3, F: 3, E: 3 },
+        total: 9,
+        action: 'Status banner',
+        actionContent: `Discourse banner template:
+
+We're seeing high demand on Composer 2.5 — try Auto or another model. No action needed on your end.
+
+(Pin for 24h. Remove when capacity normalizes.)`,
+        resolved: false,
+      },
+      {
+        id: 3,
+        title: 'Chat view scroll position resets',
+        category: 'UI / layout bug',
+        url: 'https://forum.cursor.com/t/chat-view-scroll-position-resets-when-switching-between-conversations/127336',
+        forumPreview: 'When I switch between chat tabs the scroll position resets to the top. Have to scroll back down every time — super frustrating on long threads.',
+        scores: { I: 2, F: 3, E: 2 },
+        total: 7,
+        action: 'Canonical thread',
+        actionContent: `Draft pinned post:
+
+This is a known issue tracked in Linear. We'll update this thread when a fix ships. Please don't open new threads for this — reply here instead.`,
+        resolved: false,
+      },
+      {
+        id: 4,
+        title: 'Bugbot team settings',
+        category: 'Config / how-to',
+        url: 'https://forum.cursor.com/t/bugbot-team-settings/162440',
+        forumPreview: 'Where do I configure BugBot at the team level? We enabled it on one repo and now every PR gets reviewed — not sure if that\'s expected after the billing change.',
+        scores: { I: 2, F: 2, E: 3 },
+        total: 7,
+        action: 'Publish FAQ',
+        actionContent: `FAQ draft — BugBot team controls
+
+Team admins can configure BugBot at the organization level under Settings → BugBot → Team defaults. Controls include: enabling/disabling BugBot per repo, setting review scope (changed files vs full PR), and assigning default reviewers for auto-generated comments.
+
+Billing note (effective June 13): BugBot usage on team plans is metered per reviewed PR, not per seat. Existing teams keep their current allocation through the billing cycle; new overages appear on the Usage tab. If your team sees unexpected charges after June 13, check whether BugBot was enabled on high-churn repos — disabling on archived repos usually resolves it.`,
+        resolved: false,
+      },
+      {
+        id: 5,
+        title: 'Slow bugbot in big repos',
+        category: 'Performance',
+        url: 'https://forum.cursor.com/t/slow-bugbot-in-big-repos/158340',
+        forumPreview: 'BugBot takes 15+ minutes on our monorepo (~40k files). Smaller repos are fine. Is this a known limitation or misconfiguration on our end?',
+        scores: { I: 2, F: 2, E: 1 },
+        total: 5,
+        action: 'Monitor',
+        actionContent: 'Guidance accuracy unconfirmed — pending eng review of monorepo behaviour. Do not publish FAQ until validated.',
+        resolved: false,
+      },
+      {
+        id: 6,
+        title: 'Cursor v3.6.21 agent-worker reload loop',
+        category: 'Env / integration',
+        url: 'https://forum.cursor.com/t/cursor-v3-6-21-caught-in-loop-for-cursor-agent-worker-reload-window/161933',
+        forumPreview: 'After updating to v3.6.21 I keep getting a popup: "Cursor agent-worker reload window" in a loop. Have to dismiss it every few seconds.',
+        scores: { I: 3, F: 2, E: 1 },
+        total: 5,
+        action: 'Monitor',
+        actionContent: 'Cosmetic bug, linear-linked. No macro needed. Confirm fix ships in next release.',
+        resolved: false,
+      },
+      {
+        id: 7,
+        title: 'Request ID: fbf7f60c...',
+        category: 'Auth / login',
+        url: 'https://forum.cursor.com/t/request-id-fbf7f60c-6c75-4514-8535-e4b2e466d82d/162259',
+        forumPreview: 'Can\'t log in — stuck on auth screen. Request ID: fbf7f60c-6c75-4514-8535-e4b2e466d82d. Tried Google SSO and email, same result.',
+        scores: { I: 3, F: 1, E: 2 },
+        total: 5,
+        action: 'Escalate to eng',
+        actionContent: 'Route to private channel. Request: request ID, error message, auth method, plan type.',
+        resolved: false,
+      },
+    ];
+
+    // ── Squirrel SVGs (5 health stages) ──
+    const SQUIRREL_SVGS = {
+      dead: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="50" rx="16" ry="3" fill="#000" opacity="0.08"/>
+        <ellipse cx="42" cy="38" rx="10" ry="3" fill="#8B5E3C" opacity="0.7"/>
+        <ellipse cx="32" cy="34" rx="15" ry="9" fill="#C68642"/>
+        <ellipse cx="32" cy="36" rx="9" ry="5" fill="#F5E6D3"/>
+        <circle cx="16" cy="34" r="9" fill="#C68642"/>
+        <ellipse cx="16" cy="36" rx="5" ry="4" fill="#F5E6D3"/>
+        <line x1="22" y1="26" x2="22" y2="16" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <line x1="27" y1="26" x2="27" y2="15" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <line x1="37" y1="26" x2="37" y2="15" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <line x1="42" y1="26" x2="42" y2="16" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="22" cy="14" rx="2.5" ry="2" fill="#8B5E3C"/>
+        <ellipse cx="27" cy="13" rx="2.5" ry="2" fill="#8B5E3C"/>
+        <ellipse cx="37" cy="13" rx="2.5" ry="2" fill="#8B5E3C"/>
+        <ellipse cx="42" cy="14" rx="2.5" ry="2" fill="#8B5E3C"/>
+        <line x1="12" y1="31" x2="16" y2="35" stroke="#333" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="16" y1="31" x2="12" y2="35" stroke="#333" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="18" y1="31" x2="22" y2="35" stroke="#333" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="22" y1="31" x2="18" y2="35" stroke="#333" stroke-width="1.3" stroke-linecap="round"/>
+        <ellipse cx="8" cy="38" rx="3" ry="1.5" fill="#9EC5E8" opacity="0.45"/>
+        <ellipse cx="24" cy="40" rx="3.5" ry="1.5" fill="#9EC5E8" opacity="0.45"/>
+        <ellipse cx="48" cy="37" rx="4" ry="3" fill="#8B5E3C" transform="rotate(80 48 37)"/>
+        <ellipse cx="47" cy="35" rx="2.5" ry="2" fill="#6B4226" transform="rotate(80 47 35)"/>
+        <ellipse cx="30" cy="10" rx="2" ry="1" fill="#444" opacity="0.55">
+          <animate attributeName="cx" values="24;36;24" dur="2.2s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="8;12;8" dur="2.2s" repeatCount="indefinite"/>
+        </ellipse>
+      </svg>`,
+
+      crying: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="54" rx="12" ry="2.5" fill="#9EC5E8" opacity="0.35"/>
+        <ellipse cx="22" cy="55" rx="4" ry="2" fill="#7EB8E0" opacity="0.5"/>
+        <ellipse cx="38" cy="55" rx="4" ry="2" fill="#7EB8E0" opacity="0.5"/>
+        <ellipse cx="48" cy="42" rx="7" ry="5" fill="#8B5E3C" transform="rotate(-30 48 42)" opacity="0.5"/>
+        <ellipse cx="30" cy="40" rx="14" ry="12" fill="#C68642"/>
+        <ellipse cx="30" cy="43" rx="9" ry="7" fill="#F5E6D3"/>
+        <ellipse cx="30" cy="22" rx="12" ry="11" fill="#C68642"/>
+        <ellipse cx="22" cy="14" rx="4" ry="5" fill="#C68642" transform="rotate(-25 22 14)"/>
+        <ellipse cx="38" cy="14" rx="4" ry="5" fill="#C68642" transform="rotate(25 38 14)"/>
+        <circle cx="24" cy="22" r="5" fill="#fff"/>
+        <circle cx="36" cy="22" r="5" fill="#fff"/>
+        <circle cx="24" cy="22" r="2" fill="#89CFF0" opacity="0.6"/>
+        <circle cx="36" cy="22" r="2" fill="#89CFF0" opacity="0.6"/>
+        <circle cx="24" cy="22" r="1" fill="#333"/>
+        <circle cx="36" cy="22" r="1" fill="#333"/>
+        <path d="M 23 28 Q 24 38 22 50" stroke="#5BAEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M 37 28 Q 36 38 38 50" stroke="#5BAEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M 22 30 Q 30 34 38 30" stroke="#5C3D1E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="30" cy="48" rx="3.5" ry="2.5" fill="#8B5E3C"/>
+        <ellipse cx="28" cy="46" rx="2" ry="2.5" fill="#6B4226"/>
+        <ellipse cx="32" cy="46" rx="2" ry="2.5" fill="#6B4226"/>
+        <ellipse cx="30" cy="44" rx="4" ry="3.5" fill="#8B5E3C"/>
+        <ellipse cx="30" cy="42" rx="3" ry="2.5" fill="#6B4226"/>
+      </svg>`,
+
+      sobbing: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="48" cy="44" rx="7" ry="5" fill="#8B5E3C" transform="rotate(-35 48 44)" opacity="0.6"/>
+        <ellipse cx="30" cy="40" rx="14" ry="12" fill="#C68642"/>
+        <ellipse cx="30" cy="43" rx="9" ry="7" fill="#F5E6D3"/>
+        <ellipse cx="30" cy="22" rx="12" ry="11" fill="#C68642"/>
+        <ellipse cx="22" cy="15" rx="4" ry="4.5" fill="#C68642" transform="rotate(-15 22 15)"/>
+        <ellipse cx="38" cy="15" rx="4" ry="4.5" fill="#C68642" transform="rotate(15 38 15)"/>
+        <path d="M 21 21 Q 24 19 27 21" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M 33 21 Q 36 19 39 21" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M 22 23 Q 13 21 8 25" stroke="#5BAEE8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M 22 24 Q 10 27 5 34" stroke="#5BAEE8" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M 23 25 Q 14 33 8 40" stroke="#5BAEE8" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M 38 23 Q 47 21 52 25" stroke="#5BAEE8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M 38 24 Q 50 27 55 34" stroke="#5BAEE8" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M 37 25 Q 46 33 52 40" stroke="#5BAEE8" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <circle cx="8" cy="25" r="1.6" fill="#7EC8F0"/>
+        <circle cx="5" cy="34" r="2" fill="#5BAEE8"/>
+        <circle cx="8" cy="40" r="1.4" fill="#7EC8F0"/>
+        <circle cx="52" cy="25" r="1.6" fill="#7EC8F0"/>
+        <circle cx="55" cy="34" r="2" fill="#5BAEE8"/>
+        <circle cx="52" cy="40" r="1.4" fill="#7EC8F0"/>
+        <circle cx="12" cy="30" r="1.1" fill="#5BAEE8" opacity="0.85"/>
+        <circle cx="48" cy="30" r="1.1" fill="#5BAEE8" opacity="0.85"/>
+        <ellipse cx="30" cy="29.5" rx="2.8" ry="3.2" fill="none" stroke="#5C3D1E" stroke-width="1.3"/>
+        <ellipse cx="30" cy="29.5" rx="1.6" ry="2" fill="#3D2314" opacity="0.25"/>
+        <ellipse cx="36" cy="30" rx="3" ry="2.5" fill="#C68642" transform="rotate(-20 36 30)"/>
+        <line x1="34" y1="28" x2="38" y2="26" stroke="#F5E6D3" stroke-width="1.5" stroke-linecap="round"/>
+        <ellipse cx="21" cy="41" rx="3.5" ry="3" fill="#8B5E3C"/>
+        <ellipse cx="21" cy="39" rx="2.5" ry="2" fill="#6B4226"/>
+        <ellipse cx="18" cy="40" rx="2.2" ry="2.5" fill="#6B4226"/>
+        <line x1="24" y1="48" x2="19" y2="55" stroke="#C68642" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="36" y1="48" x2="41" y2="55" stroke="#C68642" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="18" cy="56" rx="3.2" ry="2.2" fill="#8B5E3C"/>
+        <ellipse cx="17" cy="55" rx="2" ry="2.2" fill="#6B4226"/>
+        <ellipse cx="42" cy="56" rx="3.2" ry="2.2" fill="#8B5E3C"/>
+        <ellipse cx="43" cy="55" rx="2" ry="2.2" fill="#6B4226"/>
+      </svg>`,
+
+      neutral: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="48" cy="44" rx="7" ry="5" fill="#8B5E3C" transform="rotate(-35 48 44)"/>
+        <ellipse cx="30" cy="40" rx="14" ry="12" fill="#C68642"/>
+        <ellipse cx="30" cy="43" rx="9" ry="7" fill="#F5E6D3"/>
+        <ellipse cx="30" cy="22" rx="12" ry="11" fill="#C68642"/>
+        <ellipse cx="22" cy="12" rx="4" ry="5" fill="#C68642"/>
+        <ellipse cx="38" cy="12" rx="4" ry="5" fill="#C68642"/>
+        <ellipse cx="22" cy="12" rx="2.5" ry="3" fill="#E8A860"/>
+        <ellipse cx="38" cy="12" rx="2.5" ry="3" fill="#E8A860"/>
+        <ellipse cx="25" cy="22" rx="2.5" ry="3" fill="#fff"/>
+        <ellipse cx="35" cy="22" rx="2.5" ry="3" fill="#fff"/>
+        <ellipse cx="25" cy="22" rx="1.4" ry="2" fill="#1a1a1a"/>
+        <ellipse cx="35" cy="22" rx="1.4" ry="2" fill="#1a1a1a"/>
+        <line x1="24" y1="28" x2="36" y2="28" stroke="#5C3D1E" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="24" y1="48" x2="19" y2="55" stroke="#C68642" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="36" y1="48" x2="41" y2="55" stroke="#C68642" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="18" cy="56" rx="3.2" ry="2.2" fill="#8B5E3C"/>
+        <ellipse cx="17" cy="55" rx="2" ry="2.2" fill="#6B4226"/>
+        <ellipse cx="42" cy="56" rx="3.2" ry="2.2" fill="#8B5E3C"/>
+        <ellipse cx="43" cy="55" rx="2" ry="2.2" fill="#6B4226"/>
+        <ellipse cx="30" cy="46" rx="4" ry="3" fill="#8B5E3C"/>
+        <ellipse cx="30" cy="44" rx="2.5" ry="2" fill="#6B4226"/>
+        <ellipse cx="26" cy="45" rx="2.2" ry="2.5" fill="#6B4226"/>
+        <ellipse cx="34" cy="45" rx="2.2" ry="2.5" fill="#6B4226"/>
+      </svg>`,
+
+      happy: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="52" rx="10" ry="2" fill="#000" opacity="0.1"/>
+        <path d="M 50 38 Q 58 28 52 18" stroke="#8B5E3C" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="28" cy="36" rx="13" ry="11" fill="#C68642" transform="rotate(-15 28 36)"/>
+        <ellipse cx="28" cy="38" rx="8" ry="6" fill="#F5E6D3" transform="rotate(-15 28 38)"/>
+        <ellipse cx="32" cy="24" rx="11" ry="10" fill="#C68642" transform="rotate(-10 32 24)"/>
+        <ellipse cx="26" cy="14" rx="4" ry="5" fill="#C68642" transform="rotate(-30 26 14)"/>
+        <ellipse cx="38" cy="12" rx="4" ry="5" fill="#C68642" transform="rotate(10 38 12)"/>
+        <circle cx="28" cy="23" r="3" fill="#fff"/>
+        <circle cx="36" cy="22" r="3" fill="#fff"/>
+        <circle cx="28" cy="23" r="1.6" fill="#1a1a1a"/>
+        <circle cx="36" cy="22" r="1.6" fill="#1a1a1a"/>
+        <circle cx="27" cy="22" r="0.6" fill="#fff"/>
+        <circle cx="35" cy="21" r="0.6" fill="#fff"/>
+        <path d="M 26 28 Q 32 33 40 27" stroke="#5C3D1E" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M 28 30 L 30 32 L 32 30" stroke="#fff" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+        <line x1="22" y1="32" x2="18" y2="22" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <line x1="38" y1="30" x2="42" y2="18" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="18" cy="20" rx="2.5" ry="2" fill="#8B5E3C"/>
+        <ellipse cx="43" cy="16" rx="2.5" ry="2" fill="#8B5E3C"/>
+        <line x1="24" y1="40" x2="20" y2="48" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <line x1="34" y1="42" x2="38" y2="50" stroke="#C68642" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="44" cy="14" rx="4" ry="3.5" fill="#8B5E3C"/>
+        <ellipse cx="44" cy="12" rx="2.5" ry="2" fill="#6B4226"/>
+      </svg>`,
+    };
+
+    const SQUIRREL_LABELS = {
+      dead: '...help.',
+      crying: 'This is fine.',
+      sobbing: 'Getting there.',
+      neutral: 'Ok.',
+      happy: 'All clear!',
+    };
+
+    const HIGH_PRIORITY_MIN = 7;
+
+    // ── State ──
+    let selectedId = null;
+    let squirrelState = 'dead';
+
+    // ── Helpers ──
+    function getSeverity(total) {
+      if (total >= 8) return 'red';
+      if (total >= 6) return 'amber';
+      return 'grey';
+    }
+
+    function isHighPriority(ticket) {
+      return ticket.total >= HIGH_PRIORITY_MIN;
+    }
+
+    function computeQueueHealth() {
+      const highPriority = TICKETS.filter(isHighPriority);
+      if (highPriority.length === 0) return 100;
+      const resolved = highPriority.filter(t => t.resolved).length;
+      return Math.round((resolved / highPriority.length) * 100);
+    }
+
+    function healthBarColor(health) {
+      if (health < 40) return '#ff3b30';
+      if (health < 70) return '#ff9500';
+      return '#34c759';
+    }
+
+    function updateHealthBar(health) {
+      const fill = document.getElementById('health-bar-fill');
+      fill.style.width = health + '%';
+      fill.style.background = healthBarColor(health);
+    }
+
+    function truncate(str, len) {
+      return str.length > len ? str.slice(0, len - 1) + '…' : str;
+    }
+
+    function resolvedHighPriorityCount() {
+      return TICKETS.filter(t => isHighPriority(t) && t.resolved).length;
+    }
+
+    // Stages keyed to resolved count — 3-click Loom: sobbing → Ok → All clear
+    function stageFromQueue() {
+      const n = resolvedHighPriorityCount();
+      if (n === 0) return 'dead';
+      if (n === 1) return 'sobbing';
+      if (n === 2) return 'neutral';
+      return 'happy';
+    }
+
+    function setSquirrel(state) {
+      squirrelState = state;
+      document.getElementById('squirrel-svg').innerHTML = SQUIRREL_SVGS[state];
+      document.getElementById('squirrel-label').textContent = SQUIRREL_LABELS[state];
+      document.getElementById('squirrel-card').className = 'squirrel-card state-' + state;
+    }
+
+    function assessSquirrel() {
+      const health = computeQueueHealth();
+      updateHealthBar(health);
+      setSquirrel(stageFromQueue());
+    }
+
+    // ── Render tickets ──
+    function renderTickets() {
+      const list = document.getElementById('ticket-list');
+      list.innerHTML = '';
+
+      TICKETS.forEach(ticket => {
+        const li = document.createElement('li');
+        const sev = ticket.resolved ? 'grey' : getSeverity(ticket.total);
+        li.className = `ticket-row severity-${sev}` +
+          (ticket.id === selectedId ? ' selected' : '') +
+          (ticket.resolved ? ' resolved' : '');
+        li.dataset.id = ticket.id;
+
+        const badge = ticket.resolved
+          ? '<div class="check-badge">✓</div>'
+          : `<div class="score-badge">${ticket.total}</div>`;
+
+        li.innerHTML = `
+          <div class="ticket-main">
+            <div class="ticket-title">${truncate(ticket.title, 50)}</div>
+            <div class="ticket-meta">
+              <span class="category-tag">${ticket.category}</span>
+              <a class="forum-link" href="${ticket.url}" target="_blank" rel="noopener noreferrer">Forum ↗</a>
+              <span class="ife-mini">
+                <span>I</span>${ticket.scores.I}
+                <span>F</span>${ticket.scores.F}
+                <span>E</span>${ticket.scores.E}
+              </span>
+            </div>
+          </div>
+          ${badge}
+        `;
+
+        li.addEventListener('click', () => selectTicket(ticket.id));
+        li.querySelector('.forum-link').addEventListener('click', (e) => e.stopPropagation());
+        list.appendChild(li);
+      });
+    }
+
+    // ── Select ticket ──
+    function selectTicket(id) {
+      selectedId = id;
+      const ticket = TICKETS.find(t => t.id === id);
+      if (!ticket) return;
+
+      renderTickets();
+
+      // IFE panel
+      document.getElementById('ife-placeholder').style.display = 'none';
+      const breakdown = document.getElementById('ife-breakdown');
+      breakdown.classList.add('visible');
+      document.getElementById('ife-total').textContent = ticket.total;
+      document.getElementById('ife-i').textContent = ticket.scores.I;
+      document.getElementById('ife-f').textContent = ticket.scores.F;
+      document.getElementById('ife-e').textContent = ticket.scores.E;
+      document.getElementById('ife-i-desc').textContent = I_LABELS[ticket.scores.I];
+      document.getElementById('ife-f-desc').textContent = F_LABELS[ticket.scores.F];
+      document.getElementById('ife-e-desc').textContent = E_LABELS[ticket.scores.E];
+
+      const bar = document.getElementById('ife-bar');
+      const pct = (ticket.total / 9) * 100;
+      bar.style.width = pct + '%';
+      const sev = getSeverity(ticket.total);
+      bar.style.background = sev === 'red' ? '#ff3b30' : sev === 'amber' ? '#ff9500' : '#aeaeb2';
+
+      // Action panel
+      document.getElementById('action-placeholder').style.display = 'none';
+      const content = document.getElementById('action-content');
+      content.classList.add('visible');
+
+      const panel = document.getElementById('action-panel');
+      panel.className = 'panel action-panel severity-' + (ticket.resolved ? 'grey' : sev);
+
+      document.getElementById('action-title').textContent = ticket.title;
+      const forumLink = document.getElementById('action-forum-link');
+      forumLink.href = ticket.url;
+      forumLink.style.display = 'inline-block';
+      document.getElementById('action-score').textContent = ticket.total;
+      document.getElementById('action-forum-preview').textContent = ticket.forumPreview;
+      document.getElementById('action-badge').textContent = ticket.action;
+      document.getElementById('action-text').textContent = ticket.actionContent;
+
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Mark as resolved';
+      btn.classList.remove('copied');
+    }
+
+    // ── Copy to clipboard ──
+    document.getElementById('copy-btn').addEventListener('click', async () => {
+      const ticket = TICKETS.find(t => t.id === selectedId);
+      if (!ticket) return;
+
+      try {
+        await navigator.clipboard.writeText(ticket.actionContent);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = ticket.actionContent;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Resolved!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Mark as resolved';
+        btn.classList.remove('copied');
+      }, 1500);
+
+      const sev = getSeverity(ticket.total);
+      if ((sev === 'red' || sev === 'amber') && !ticket.resolved) {
+        ticket.resolved = true;
+        renderTickets();
+        selectTicket(ticket.id);
+        assessSquirrel();
+      }
+    });
+
+    // ── Collapsible reference ──
+    document.getElementById('ife-ref-toggle').addEventListener('click', () => {
+      const ref = document.getElementById('ife-reference');
+      const open = ref.classList.toggle('open');
+      document.getElementById('ife-ref-toggle').setAttribute('aria-expanded', open);
+    });
+
+    // ── Init ──
+    renderTickets();
+    assessSquirrel();
+  </script>
+</body>
+</html>
